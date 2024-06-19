@@ -16,6 +16,6 @@ Few steps to go
 - ```./vendor/bin/sail composer i```
 - ```./vendor/bin/sail artisan migrate```
 - ```./vendor/bin/sail artisan artisan queue:work```
-- hit POST ```localhost:80/api/products``` with body ```{"name": "Super product"}```
+- POST request ```curl -X POST -H "Content-Type: application/json" -d '{"name": "Super product"}' http://localhost:80/api/products```
 - tada
 
