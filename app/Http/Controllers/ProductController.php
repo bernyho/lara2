@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\ProcessProduct;
 use App\Models\Product;
+use App\Services\RabbitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly RabbitService $rabbitService
+    )
+    {
+    }
+
     public function index(): View
     {
         $products = Cache::remember('products', 10, function () {
@@ -42,7 +48,17 @@ class ProductController extends Controller
         $product->setName($request->get('name'));
         $product->save();
 
-        ProcessProduct::dispatch($product);
+        $message = json_encode([
+            'id' => $product->getId(),
+            'name' => $product->getName()
+        ]);
+
+        $this->rabbitService->sendMessage(
+            'product_exchange',
+            'product_queue',
+            'product_key',
+            $message,
+        );
 
         return response()->json([
             'message' => 'Product created.',
